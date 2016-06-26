@@ -1,0 +1,62 @@
+BOT HUNTER
+
+secret: 	Rf2igDDIynA0k-hJmc9DprnWczA
+client id: UeQNU1v3BhDWVA
+developer: 	
+ShaddiestTerrapin57
+pwd: Enjoipanda24
+
+looks for other bots:
+-looks for usernames with bot
+-looks for comments with bot, moderator in title
+
+-looks for user that has posted same comment containing same message 20+ times
+
+-looks for user that has posted in same thread 
+
+
+once identify bot:
+-find average number of hyperlinks in comment
+-appearance of the users username in comment
+-length of character sequence that exactly matches previous comment by user, starting at the beginning of the comment
+-same as above starting at end
+-common strings used in messages from automod bots
+-look for FAR and BOT
+
+-SequenceMathcer
+
+
+For username: use regex to eliminate 
+	ROBOT
+	bottle
+	both
+	ends in bot
+
+
+FEATURES
+-Comment response time
+-number of hyperlinks in a comment
+-length of character sequence that exactly matches previous comment by user, starting at the beginning of the comment
+-starting at the end of the comment
+-common strings
+	-potentially parse 3 or 4 comments
+
+
+Past Guy:
+After running a test on the user name, I assigned them a similarity score. This was done by pulling up the post history of the user and comparing the last ten posts against each other, looking for differences. I used the SequenceMatcher() function of Python's difflib module to find the difference between each comment and the one before it, and then averaged those differences. This gave a value between 0 and 1, with 1 being the most similar. If the value was >= 0.3 I considered it to be a likely bot, so I multiplied it by 60 and added it to the confidence score. If it was < 0.3, I subtracted it from 0.5, multiplied it by 60, and then subtracted that from the overall confidence score (confidence -= (0.5 - similarity) * 60).
+
+
+One thing that might add to the confidence score is quick reaction time: If the comments are always made within seconds of the parent, it's probably a bot.
+
+
+What you should really do is take a list of bot usernames and try to develop a classifier that you can train on the list, instead of developing your rules arbitrarily. I think it would also be fruitful to pull down a chunk of comments from each bot, derive some features from the comments, and include that in your classifier. Or maybe make a second classifier, so you have one that classifies based on comment content and another that classifies based on username, and then you could combine them (maybe if either thinks it' a bot you hold on to the account, or you combine them into an ensemble with a vote or an average or something).
+Let me know if these techniques are unfamiliar to you and I can go into more detail into what I'm talking about. You can (probably) use the data you've already collected to build a much more effective tool (if you're interested).
+
+before you can even bother with algorithms, you need to do some feature engineering. You've already gotten started: the conditions you are using to score could each individually be considered a feature. I'd work on parsing out as many features as you can. I think the appearance of the word "bot" in the username is a good feature. As I suggested earlier, I don't think you should be applying a negative score if "bot" is actually a component of a different word: instead, be more careful about how you identify the word "bot." Regular expressions are your friend. Comment similarity was a good call. I think this is a strong feature. I think you could come up with more interesting features if you download a dataset of comments from your identified bots and do some analysis on those comments. Some things to look for:
+number of hyperlinks in a comment
+appearance of the user's own username in the comment
+length of character sequence that exactly matches previous comment by user, starting at the beginning of the comment
+same as above, starting at the end of the comment.
+common strings used in messages from automoderator bots
+And so on. You might also find certain words to be useful, like "FAQ" or, again, "bot." You specifically want to find words/features that distinguish bots form humans, so you'll need a random sample of comments (presumably from human users) to compare against.
+Once you've got some features defined, there are loads of different classifiers you can try. I think your best bets are probably simple logistic regression, support vector machines, and neural networks. How effective and computationally expensive any particular approach will be depends entirely on how many features you find.
