@@ -3,7 +3,7 @@
 #wanted to evaluate average response time, but after investigation realized there was too much variation.
 #I believe this variation was due to the irregularities associated with redidt. Ie. tons of post one day, dead the next
 #When there are no posts, autotldr and other response bots no longer need to post as frequently
-
+#Ran into cases where users were commenting years ago, before bot setup. Bot just posted
 import praw
 import time
 import sqlite3
@@ -66,23 +66,59 @@ def validate():
          hyperLinkScore = 10
          commonStringScore = 0
 
-         comments = r.get_redditor(potentialBot[0]).get
 
          try:
 
             for comment in r.get_redditor(potentialBot[0]).get_comments(limit=MAXCOMMENTS):
-               print(comment)
-               print(dir(r.get_redditor(potentialBot[0])))
                if x == 0:
                   baseComment = comment
                   numOfHyperlinksInBaseComment = baseComment.body.count("](http")
-
                   x +=1
 
                elif x == 1:
                   seq=difflib.SequenceMatcher(None, baseComment.body,comment.body)
                   totalSequentialDiff +=(seq.ratio())
 
+                  if baseComment.body.count("](http") == numOfHyperlinksInBaseComment:
+                     hyperLinkScore += 10
+
+                  for block in seq.get_matching_blocks():
+                     if block[2] > sizeOfCommonBlock:
+                        sizeOfCommonBlock = block[2]
+                        end = int(block[0]+block[2])
+                        commonString = comment.body[block[0]:end:]
+
+                  x+=1
+
+               else: 
+                  seq=difflib.SequenceMatcher(None, baseComment.body,comment.body)
+                  totalSequentialDiff +=(seq.ratio())
+                  if baseComment.body.count("](http") == numOfHyperlinksInBaseComment:
+                     hyperLinkScore += 10
+
+                  if comment.body.find(commonString) != -1:
+                     commonStringScore += 12.5
+
+            x = 0
+            totalSequentialDiff *= 10
+            print("hyperLinkScore: " +str(hyperLinkScore))
+            print("totalSequentialDiff: "+str(totalSequentialDiff))
+            print(commonString)
+            print('commonStringScore: '+str(commonStringScore))
+            commonStringScore = 0
+
+            print('going to posts')
+            #Now go through posts in case bot just posts
+            for post in r.get_redditor(potentialBot[0]).get_submitted(limit=MAXCOMMENTS):
+               
+               if x == 0:
+                  baseComment = post
+                  numOfHyperlinksInBaseComment = baseComment.body.count("](http")
+                  x +=1
+
+               elif x == 1:
+                  seq=difflib.SequenceMatcher(None, baseComment.body,comment.body)
+                  totalSequentialDiff +=(seq.ratio())
 
                   if baseComment.body.count("](http") == numOfHyperlinksInBaseComment:
                      hyperLinkScore += 10
@@ -112,7 +148,6 @@ def validate():
             print(commonString)
             print('commonStringScore: '+str(commonStringScore))
             commonStringScore = 0
-
          except praw.errors.NotFound:
             print('user was banned')
             pass
