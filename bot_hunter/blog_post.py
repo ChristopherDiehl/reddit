@@ -1,17 +1,24 @@
 #template from: /u/GoldenSights
+#copy of autotldr
+#need to have installed praw,sumy
 import praw
 import time
 import traceback
 import requests
 from socket import timeout
+from bs4 import BeautifulSoup
+from pytldr.summarize import LsaOzsoy
 
+
+SENTENCES_COUNT = 6
 APP_ID = ""
 APP_SECRET = ""
 APP_URI = ""
-USERAGENT = "A post condensor by /u/ShaddiestTerrapin57"
+USERAGENT = "An autotldr copy by /u/ShaddiestTerrapin57"
 SUBREDDIT = "worldnews"
-MAXPOSTS = 50
-WAIT = 30
+MAXPOSTS = 1
+WAIT = 160
+START_MESSAGE = "I am a bot. I was able to reduce to 6 sentences: \n"
 #a bot.py file where you list variables
 try:
 	import bot
@@ -34,17 +41,33 @@ posts += subreddit.get_new(limit=MAXPOSTS)
 def scanSubreddit():
 	try:
 		for post in posts:
+
 			url = post.url
-			
+			print(post)
+			if url != '':
+
+				webpage = requests.get(url)
+				soup = BeautifulSoup(webpage.content,'httml5lib')			
+				parsedArticle = ''
+				for p_tag in str(soup.p.get_text()):
+					parsedArticle += p_tag
+
+				post_comment(post,parsedArticle)
+
+
 
 	except AttributeError:
 		print('AttributeError')
 		pass
 
+def summarize(articleToSummarize) :
+	summarizer = LsaOzsoy()
+	return summarizer.summarize(articleToSummarize, topics=2, length=SENTENCES_COUNT, binary_matrix=True, topic_sigma_threshold=0.5)
 
-def message(user):
-	print('About to message users on '+SUBREDDIT)
-	r.send_message(user, 'I am a test bot', 'Awesome Post Man!')
+def post_comment(post, parsedArticle):
+	parsedArticle = summarize(parsedArticle)
+	r.add_comment(START_MESSAGE + parsedArticle)
+	print('Comment posted: '+ parsedArticle)
 
 
 
