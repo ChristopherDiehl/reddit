@@ -1,0 +1,6 @@
+User-agent: *
+Disallow: 
+Disallow: /cgi-bin/
+Disallow: /login
+Disallow: /manager
+Sitemap: http://www.yoursite.com/sitemap.gz

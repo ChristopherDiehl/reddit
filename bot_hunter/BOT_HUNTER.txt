@@ -1,10 +1,7 @@
 BOT HUNTER
 
-secret: 	Rf2igDDIynA0k-hJmc9DprnWczA
-client id: UeQNU1v3BhDWVA
 developer: 	
-ShaddiestTerrapin57
-pwd: Enjoipanda24 
+
 
 looks for other bots:
 -looks for usernames with bot
