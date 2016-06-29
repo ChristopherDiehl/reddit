@@ -7,18 +7,21 @@ import traceback
 import requests
 from socket import timeout
 from bs4 import BeautifulSoup
-from pytldr.summarize import LsaOzsoy
+import sumy.summarizers.lsa as lsa_module
+from sumy.summarizers.lsa import LsaSummarizer
+from sumy.parsers.plaintext import PlaintextParser
+from sumy.utils import get_stop_words
+import io
 
-
-SENTENCES_COUNT = 6
+MAX_SENTENCES = 2
 APP_ID = ""
 APP_SECRET = ""
 APP_URI = ""
 USERAGENT = "An autotldr copy by /u/ShaddiestTerrapin57"
 SUBREDDIT = "worldnews"
-MAXPOSTS = 1
+MAXPOSTS = 30
 WAIT = 160
-START_MESSAGE = "I am a bot. I was able to reduce to 6 sentences: \n"
+START_MESSAGE = "I am a bot. I was able to reduce article to 4 sentences: \n"
 #a bot.py file where you list variables
 try:
 	import bot
@@ -40,32 +43,37 @@ posts += subreddit.get_new(limit=MAXPOSTS)
 
 def scanSubreddit():
 	try:
+		x = 0
 		for post in posts:
+			#url = post.url
+			print('post ['+str(x)+']')
+			url = 'http://www.bbc.com/news/world-europe-36658187'
 
-			url = post.url
-			print(post)
-			if url != '':
-
+			if str(url).find('https://www.reddit.com') == -1:
 				webpage = requests.get(url)
-				soup = BeautifulSoup(webpage.content,'httml5lib')			
+				soup = BeautifulSoup(webpage.content,'html5lib')			
 				parsedArticle = ''
-				for p_tag in str(soup.p.get_text()):
-					parsedArticle += p_tag
 
+				for p_tag in soup.find_all('p'):
+					parsedArticle += str(p_tag.get_text())
+
+				print(parsedArticle)
+				print('\nvs\n')
+
+				print('parsedArticle :' +parsedArticle)
 				post_comment(post,parsedArticle)
-
-
 
 	except AttributeError:
 		print('AttributeError')
 		pass
 
-def summarize(articleToSummarize) :
-	summarizer = LsaOzsoy()
-	return summarizer.summarize(articleToSummarize, topics=2, length=SENTENCES_COUNT, binary_matrix=True, topic_sigma_threshold=0.5)
+def local_summarize(articleToSummarize) :
+
+	summarizer = LsaSummarizer()
+	summarizer.stopwords = get_stop_words('ENGLISH')
+	return summarizer(articleToSummarize, MAX_SENTENCES)
 
 def post_comment(post, parsedArticle):
-	parsedArticle = summarize(parsedArticle)
 	r.add_comment(START_MESSAGE + parsedArticle)
 	print('Comment posted: '+ parsedArticle)
 
