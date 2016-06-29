@@ -4,19 +4,21 @@ import time
 import traceback
 from socket import timeout
 from bs4 import BeautifulSoup
-import io
 import requests
-
-
+import random
+import time
+#username = Peribot
+#password = PeribotPwd
 APP_ID = ""
 APP_SECRET = ""
 APP_URI = ""
-USERAGENT = "An example bot by /u/ShaddiestTerrapin57"
-SUBREDDIT = "worldnews"
-MAXPOSTS = 2
+USERAGENT = "An flirter by /u/ShaddiestTerrapin57"
+SUBREDDIT = "stevenuniverse"
+MAXPOSTS = 20
 WAIT = 30
-START_MESSAGE = "I am a bot. Here is the content: \n"
-
+FLIRT_MESSAGES= ["I got yo numbah!","Hey there Lazuli ;)","I love Stevens Universe!","Hey Lazuli :)"]
+refresh_token ='58989266-aQBoF4gHodFL2FHJrNLK0LYDtJw'
+BOT ="Lapis_Mirror"
 #a bot.py file where you list variables
 try:
 	import bot
@@ -31,29 +33,21 @@ except ImportError:
 #you will need to follow steps found at: http://praw.readthedocs.io/en/stable/pages/oauth.html to setup your bot login
 r = praw.Reddit(USERAGENT)
 r.set_oauth_app_info(APP_ID, APP_SECRET, APP_URI)
-
+r.refresh_access_information(refresh_token)
 subreddit = r.get_subreddit(SUBREDDIT)
 posts = []
-posts += subreddit.get_new(limit=MAXPOSTS)
+userToReplyTo = r.get_redditor(BOT)
+posts += userToReplyTo.get_submitted(limit=MAXPOSTS)
+
 
 
 
 def scanSubreddit():
 	
 	try:	
-		x = 0
 		for post in posts:
-			url = post.url
-			if str(url).find('https://www.reddit.com') == -1:
-				webpage = requests.get(url)
-				soup = BeautifulSoup(webpage.content,'html5lib')	
-				parsedArticle = ''
-
-				print('url: '+url)
-				for p_tag in soup.find_all('p'):
-					parsedArticle += str(p_tag.get_text())
-
-				print(parsedArticle +'\n\n')
+			
+			post_comment(post,FLIRT_MESSAGES[random.randint(0,3 )])
 
 			parsedArticle = ""
 			#post_comment(post,parsedArticle)
@@ -63,14 +57,14 @@ def scanSubreddit():
 		traceback.print_exc()
 		pass
 
-def post_comment(post, parsedArticle):
-	post.add_comment(START_MESSAGE + parsedArticle)
-	print('Comment posted: '+ parsedArticle)
+def post_comment(post, comment):
+	post.add_comment(comment)
 
 
 
 while True:
 	try:
+		
 		scanSubreddit()
 
    #handles reddit / local connection instability
